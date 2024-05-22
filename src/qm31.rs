@@ -223,6 +223,22 @@ pub fn qm31_roll(offset: usize) -> Script {
     }
 }
 
+pub fn qm31_dup() -> Script {
+    qm31_copy(0)
+}
+
+pub fn qm31_swap() -> Script {
+    qm31_roll(1)
+}
+
+pub fn qm31_over() -> Script {
+    qm31_copy(1)
+}
+
+pub fn qm31_rot() -> Script {
+    qm31_roll(2)
+}
+
 #[cfg(test)]
 mod test {
     use crate::{
