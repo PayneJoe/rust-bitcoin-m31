@@ -2,6 +2,36 @@ use bitvm::treepp::*;
 
 pub const MOD: u32 = (1 << 31) - 1;
 
+pub fn push_m31_zero() -> Script {
+    script! {
+        0
+    }
+}
+
+pub fn push_m31_one() -> Script {
+    script! {
+        1
+    }
+}
+
+pub fn push_n31_zero() -> Script {
+    script! {
+        { -(MOD as i64) }
+    }
+}
+
+pub fn push_n31_one() -> Script {
+    script! {
+        { 1 - (MOD as i64) }
+    }
+}
+
+pub fn m31_from_bottom() -> Script {
+    script! {
+        OP_DEPTH OP_1SUB OP_ROLL
+    }
+}
+
 pub fn m31_to_n31() -> Script {
     script! {
         { MOD } OP_SUB
@@ -157,6 +187,13 @@ pub fn m31_mul() -> Script {
             OP_TOALTSTACK
         }
         m31_mul_common
+    }
+}
+
+pub fn m31_square() -> Script {
+    script! {
+        OP_DUP
+        m31_mul
     }
 }
 
@@ -323,6 +360,28 @@ mod test {
                     { bits[i as usize] } OP_EQUALVERIFY
                 }
                 { bits[30] } OP_EQUAL
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+    }
+
+    #[test]
+    fn test_m31_square() {
+        let mut prng = ChaCha20Rng::seed_from_u64(6u64);
+        eprintln!("m31 square: {}", m31_square().len());
+
+        for _ in 0..100 {
+            let a: u32 = prng.gen();
+
+            let a_m31 = a % MOD;
+            let prod_m31 = ((((a_m31 as u64) * (a_m31 as u64)) % (MOD as u64)) & 0xffffffff) as u32;
+
+            let script = script! {
+                { a_m31 }
+                m31_square
+                { prod_m31 }
+                OP_EQUAL
             };
             let exec_result = execute_script(script);
             assert!(exec_result.success);

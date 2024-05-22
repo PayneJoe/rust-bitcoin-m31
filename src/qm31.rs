@@ -1,9 +1,36 @@
-use crate::{m31_mul_by_constant, m31_to_bits};
+use crate::{m31_from_bottom, m31_mul_by_constant, m31_to_bits};
 use bitvm::treepp::*;
 
 pub use crate::karatsuba_complex::*;
 
 use crate::m31::{m31_add, m31_double, m31_mul_common, m31_sub};
+
+pub fn push_qm31_zero() -> Script {
+    script! {
+        { 0 }
+        { 0 }
+        { 0 }
+        { 0 }
+    }
+}
+
+pub fn push_qm31_one() -> Script {
+    script! {
+        { 0 }
+        { 0 }
+        { 0 }
+        { 1 }
+    }
+}
+
+pub fn qm31_from_bottom() -> Script {
+    script! {
+        m31_from_bottom
+        m31_from_bottom
+        m31_from_bottom
+        m31_from_bottom
+    }
+}
 
 pub fn qm31_add() -> Script {
     script! {
@@ -53,6 +80,13 @@ pub fn qm31_double() -> Script {
         for _ in 0..3 {
             OP_FROMALTSTACK
         }
+    }
+}
+
+pub fn qm31_square() -> Script {
+    script! {
+        { qm31_copy(0) }
+        qm31_mul
     }
 }
 
@@ -291,6 +325,34 @@ mod test {
             { b[0].imag().as_canonical_u32() }
             { b[0].real().as_canonical_u32() }
             qm31_sub
+            { c[1].imag().as_canonical_u32() }
+            { c[1].real().as_canonical_u32() }
+            { c[0].imag().as_canonical_u32() }
+            { c[0].real().as_canonical_u32() }
+            qm31_equalverify
+            OP_PUSHNUM_1
+        };
+        let exec_result = execute_script(script);
+        assert!(exec_result.success);
+    }
+
+    #[test]
+    fn test_qm31_square() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+        eprintln!("qm31 square: {}", qm31_square().len());
+
+        let a = rng.gen::<F>();
+        let c = a.square();
+
+        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+
+        let script = script! {
+            { a[1].imag().as_canonical_u32() }
+            { a[1].real().as_canonical_u32() }
+            { a[0].imag().as_canonical_u32() }
+            { a[0].real().as_canonical_u32() }
+            qm31_square
             { c[1].imag().as_canonical_u32() }
             { c[1].real().as_canonical_u32() }
             { c[0].imag().as_canonical_u32() }
