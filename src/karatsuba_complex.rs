@@ -1,5 +1,5 @@
+use crate::treepp::*;
 use crate::{m31_add, m31_mul, m31_sub};
-use bitvm::treepp::*;
 
 // Input: A1 B1 A2 B2
 // Output:
@@ -89,8 +89,8 @@ pub fn karatsuba_complex_big() -> Script {
 
 #[cfg(test)]
 mod test {
+    use crate::treepp::*;
     use crate::{karatsuba_complex_big, karatsuba_complex_small};
-    use bitvm::treepp::*;
     use core::ops::{Add, Mul, Sub};
     use p3_field::extension::Complex;
     use p3_field::PrimeField32;

@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bitvm = { git = "https://github.com/BitVM/BitVM" }
 bitcoin-script = { git = "https://github.com/BitVM/rust-bitcoin-script" }
 bitcoin = { git = "https://github.com/rust-bitcoin/rust-bitcoin", branch = "bitvm" }
 bitcoin-scriptexec = { git = "https://github.com/BitVM/rust-bitcoin-scriptexec/" }
@@ -65,3 +64,6 @@ branch = "bitvm"
 [patch.crates-io.bitcoin-units]
 git = "https://github.com/rust-bitcoin/rust-bitcoin"
 branch = "bitvm"
+
+[patch.'https://github.com/BitVM/rust-bitcoin-scriptexec'.bitcoin-scriptexec]
+git = "https://github.com/Bitcoin-Wildlife-Sanctuary/rust-bitcoin-scriptexec"

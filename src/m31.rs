@@ -1,4 +1,4 @@
-use bitvm::treepp::*;
+use crate::treepp::*;
 
 pub const MOD: u32 = (1 << 31) - 1;
 
@@ -281,7 +281,6 @@ pub fn m31_mul_by_constant(constant: u32) -> Script {
 
 #[cfg(test)]
 mod test {
-    use bitvm::treepp::*;
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha20Rng;
 

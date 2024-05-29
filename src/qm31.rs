@@ -1,5 +1,5 @@
+use crate::treepp::*;
 use crate::{m31_from_bottom, m31_mul_by_constant, m31_neg, m31_to_bits};
-use bitvm::treepp::*;
 
 pub use crate::karatsuba_complex::*;
 
@@ -255,7 +255,6 @@ mod test {
         qm31_add, qm31_copy, qm31_equalverify, qm31_mul, qm31_mul_m31, qm31_mul_m31_by_constant,
         qm31_roll, qm31_sub,
     };
-    use bitvm::treepp::*;
     use core::ops::{Add, Mul, Neg};
     use p3_field::extension::Complex;
     use p3_field::{AbstractExtensionField, AbstractField, PrimeField32};
