@@ -198,7 +198,7 @@ pub fn m31_square() -> Script {
 }
 
 pub fn m31_mul_by_constant(constant: u32) -> Script {
-    let mut naf = ark_ff::biginteger::arithmetic::find_naf(&[constant as u64]);
+    let mut naf = find_naf(constant);
 
     if naf.len() > 3 {
         let len = naf.len();
@@ -277,6 +277,30 @@ pub fn m31_mul_by_constant(constant: u32) -> Script {
 
     script_bytes.extend_from_slice(&[0x75]); // OP_DROP
     Script::from(script_bytes)
+}
+
+/// Compute the NAF (non-adjacent form) of num
+/// Adapted from https://github.com/arkworks-rs/algebra/blob/master/ff/src/biginteger/arithmetic.rs
+pub fn find_naf(mut num: u32) -> Vec<i8> {
+    let mut res = vec![];
+
+    while num != 0 {
+        let z: i8;
+        if num % 2 == 1 {
+            z = 2 - (num % 4) as i8;
+            if z >= 0 {
+                num -= z as u32;
+            } else {
+                num += (-z) as u32;
+            }
+        } else {
+            z = 0;
+        }
+        res.push(z);
+        num >>= 1;
+    }
+
+    res
 }
 
 #[cfg(test)]
