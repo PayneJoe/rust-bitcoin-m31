@@ -281,6 +281,12 @@ pub fn qm31_hint() -> Script {
     }
 }
 
+pub fn qm31_drop() -> Script {
+    script! {
+        OP_2DROP OP_2DROP
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{
