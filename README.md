@@ -29,7 +29,7 @@ Thanks to [Shahar Papini](https://twitter.com/PapiniShahar) from Starkware for p
 
 A windowing method is used to reduce the multiplication overhead further, but it was not as powerful as expected.
 
-The introduction of a dual form, `v31`, for which `u31 + v31` are more efficient than `u31 + u31` or `v31 + v31`, brings 
+The introduction of a dual form, `n31`, for which `m31 + n31` are more efficient than `m31 + m31` or `n31 + n31`, brings 
 the cost from 1505 to 1415 for BabyBear and from 14404 to 13594 for BabyBear4.
 
 When multiplying a degree-4 element with a degree-1 base element, we reuse the bit decomposition, this avoids the redundancy 

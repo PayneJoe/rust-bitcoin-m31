@@ -149,7 +149,7 @@ pub fn qm31_mul_by_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
 pub fn qm31_mul_m31() -> Script {
     // input stack:
     //
-    // u31ext
+    // qm31
     // d, c, b, a
     //
     // m31
@@ -205,7 +205,7 @@ pub fn qm31_mul_m31() -> Script {
 pub fn qm31_mul_m31_by_constant(constant: u32) -> Script {
     // input stack:
     //
-    // u31ext
+    // qm31
     // d, c, b, a
 
     script! {
@@ -272,18 +272,73 @@ pub fn qm31_rot() -> Script {
     qm31_roll(2)
 }
 
-pub fn qm31_hint() -> Script {
-    script! {
-        OP_DEPTH OP_1SUB OP_ROLL
-        OP_DEPTH OP_1SUB OP_ROLL
-        OP_DEPTH OP_1SUB OP_ROLL
-        OP_DEPTH OP_1SUB OP_ROLL
-    }
-}
-
 pub fn qm31_drop() -> Script {
     script! {
         OP_2DROP OP_2DROP
+    }
+}
+
+// Input:
+// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
+//
+// Output:
+// (-a + bi)j + (-c + di)
+// aka:
+// a' = b
+// b' = -a
+// c' = d
+// d' = -c
+pub fn qm31_shift_by_i() -> Script {
+    script! {
+        OP_SWAP
+        m31_neg
+        OP_2SWAP
+        OP_SWAP
+        m31_neg
+        OP_2SWAP
+    }
+}
+
+// Input:
+// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
+//
+// Output:
+//   (ai + b) j^2 + (ci + d)j
+// = (ai + b) (2 + i) + (ci + d) j
+// = (ci + d)j + ((2a + b)i + (2b - a))
+// aka:
+// a' = c
+// b' = d
+// c' = 2a + b
+// d' = 2b - a
+pub fn qm31_shift_by_j() -> Script {
+    script! {
+        OP_2SWAP
+
+        // stack: c, d, a, b
+        OP_OVER
+        m31_double
+        OP_OVER
+        m31_add
+
+        // stack: c, d, a, b, 2a+b
+
+        OP_SWAP
+        m31_double
+        OP_ROT
+        m31_sub
+    }
+}
+
+// Input:
+// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
+//
+// Output:
+//  (di - c)j + ((2b - a)i - (2a + b))
+pub fn qm31_shift_by_ij() -> Script {
+    script! {
+        qm31_shift_by_i
+        qm31_shift_by_j
     }
 }
 
@@ -296,12 +351,13 @@ mod test {
     use core::ops::{Add, Mul, Neg};
     use p3_field::extension::Complex;
     use p3_field::{AbstractExtensionField, AbstractField, PrimeField32};
+    use p3_mersenne_31::Mersenne31;
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha20Rng;
 
     use super::*;
 
-    type F = p3_field::extension::BinomialExtensionField<Complex<p3_mersenne_31::Mersenne31>, 2>;
+    type F = p3_field::extension::BinomialExtensionField<Complex<Mersenne31>, 2>;
 
     #[test]
     fn test_qm31_add() {
@@ -314,9 +370,9 @@ mod test {
 
             let c = a.add(b);
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -348,8 +404,8 @@ mod test {
             let a = rng.gen::<F>();
             let c = a.double();
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -379,9 +435,9 @@ mod test {
             let b = rng.gen::<F>();
             let c = a.add(b.neg());
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -414,8 +470,8 @@ mod test {
             let a = rng.gen::<F>();
             let c = a.neg();
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -444,8 +500,8 @@ mod test {
             let a = rng.gen::<F>();
             let c = a.square();
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -475,9 +531,9 @@ mod test {
             let b = rng.gen::<F>();
             let c = a.mul(b);
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -512,9 +568,9 @@ mod test {
             let b = rng.gen::<F>();
             let c = a.mul(b);
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let mul_script = qm31_mul_by_constant(
                 b[1].imag().as_canonical_u32(),
@@ -553,15 +609,15 @@ mod test {
 
         for _ in 0..100 {
             let a = rng.gen::<F>();
-            let b = rng.gen::<p3_mersenne_31::Mersenne31>();
+            let b = rng.gen::<Mersenne31>();
 
             let c = a * F::new(
-                Complex::<p3_mersenne_31::Mersenne31>::new(b, p3_mersenne_31::Mersenne31::zero()),
-                Complex::<p3_mersenne_31::Mersenne31>::zero(),
+                Complex::<Mersenne31>::new(b, Mersenne31::zero()),
+                Complex::<Mersenne31>::zero(),
             );
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -590,18 +646,18 @@ mod test {
 
         for _ in 0..100 {
             let a = rng.gen::<F>();
-            let b = rng.gen::<p3_mersenne_31::Mersenne31>();
+            let b = rng.gen::<Mersenne31>();
 
             let mul_script = qm31_mul_m31_by_constant(b.as_canonical_u32());
             total_len += mul_script.len();
 
             let c = a * F::new(
-                Complex::<p3_mersenne_31::Mersenne31>::new(b, p3_mersenne_31::Mersenne31::zero()),
-                Complex::<p3_mersenne_31::Mersenne31>::zero(),
+                Complex::<Mersenne31>::new(b, Mersenne31::zero()),
+                Complex::<Mersenne31>::zero(),
             );
 
-            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
 
             let script = script! {
                 { a[1].imag().as_canonical_u32() }
@@ -631,8 +687,8 @@ mod test {
         let a = rng.gen::<F>();
         let b = rng.gen::<F>();
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
+        let a: &[Complex<Mersenne31>] = a.as_base_slice();
+        let b: &[Complex<Mersenne31>] = b.as_base_slice();
 
         let copy_script = qm31_copy(1);
 
@@ -669,14 +725,14 @@ mod test {
     }
 
     #[test]
-    fn test_u31ext_roll() {
+    fn test_qm31_roll() {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
 
         let a = rng.gen::<F>();
         let b = rng.gen::<F>();
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
+        let a: &[Complex<Mersenne31>] = a.as_base_slice();
+        let b: &[Complex<Mersenne31>] = b.as_base_slice();
 
         let roll_script = qm31_roll(1);
 
@@ -705,5 +761,113 @@ mod test {
 
         let exec_result = execute_script(script);
         assert!(exec_result.success);
+    }
+
+    #[test]
+    fn test_qm31_shift_by_i() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+
+        let shift_script = qm31_shift_by_i();
+        eprintln!("qm31 shift_by_i: {}", shift_script.len());
+
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let c = a.mul(F::new(
+                Complex::<Mersenne31>::new(Mersenne31::zero(), Mersenne31::one()),
+                Complex::<Mersenne31>::zero(),
+            ));
+
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
+
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { shift_script.clone() }
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_TRUE
+            };
+
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+    }
+
+    #[test]
+    fn test_qm31_shift_by_j() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+
+        let shift_script = qm31_shift_by_j();
+        eprintln!("qm31 shift_by_j: {}", shift_script.len());
+
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let c = a.mul(F::new(
+                Complex::<Mersenne31>::zero(),
+                Complex::<Mersenne31>::one(),
+            ));
+
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
+
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { shift_script.clone() }
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_TRUE
+            };
+
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+    }
+
+    #[test]
+    fn test_qm31_shift_by_ij() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+
+        let shift_script = qm31_shift_by_ij();
+        eprintln!("qm31 shift_by_ij: {}", shift_script.len());
+
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let c = a.mul(F::new(
+                Complex::<Mersenne31>::zero(),
+                Complex::<Mersenne31>::new(Mersenne31::zero(), Mersenne31::one()),
+            ));
+
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
+
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { shift_script.clone() }
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_TRUE
+            };
+
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 }
