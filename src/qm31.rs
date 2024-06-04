@@ -123,6 +123,29 @@ pub fn qm31_mul() -> Script {
     }
 }
 
+pub fn qm31_mul_by_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
+    script! {
+        { karatsuba_complex_big_constant(a2, b2, c2, d2) }
+        4 OP_ROLL
+        OP_DUP
+        m31_double
+        6 OP_ROLL
+        OP_DUP
+        m31_double
+        OP_ROT
+        OP_ROT
+        m31_sub
+        3 OP_ROLL
+        m31_add
+        OP_ROT
+        OP_ROT
+        m31_add
+        OP_ROT
+        m31_add
+        OP_SWAP
+    }
+}
+
 pub fn qm31_mul_m31() -> Script {
     // input stack:
     //
@@ -270,61 +293,65 @@ mod test {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
         eprintln!("qm31 add: {}", qm31_add().len());
 
-        let a = rng.gen::<F>();
-        let b = rng.gen::<F>();
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let b = rng.gen::<F>();
 
-        let c = a.add(b);
+            let c = a.add(b);
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            { b[1].imag().as_canonical_u32() }
-            { b[1].real().as_canonical_u32() }
-            { b[0].imag().as_canonical_u32() }
-            { b[0].real().as_canonical_u32() }
-            qm31_add
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_PUSHNUM_1
-        };
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { b[1].imag().as_canonical_u32() }
+                { b[1].real().as_canonical_u32() }
+                { b[0].imag().as_canonical_u32() }
+                { b[0].real().as_canonical_u32() }
+                qm31_add
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 
     #[test]
     fn test_qm31_double() {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
 
-        let a = rng.gen::<F>();
-        let c = a.double();
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let c = a.double();
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            qm31_double
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_PUSHNUM_1
-        };
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                qm31_double
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 
     #[test]
@@ -332,33 +359,35 @@ mod test {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
         eprintln!("qm31 sub: {}", qm31_sub().len());
 
-        let a = rng.gen::<F>();
-        let b = rng.gen::<F>();
-        let c = a.add(b.neg());
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let b = rng.gen::<F>();
+            let c = a.add(b.neg());
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            { b[1].imag().as_canonical_u32() }
-            { b[1].real().as_canonical_u32() }
-            { b[0].imag().as_canonical_u32() }
-            { b[0].real().as_canonical_u32() }
-            qm31_sub
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_PUSHNUM_1
-        };
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { b[1].imag().as_canonical_u32() }
+                { b[1].real().as_canonical_u32() }
+                { b[0].imag().as_canonical_u32() }
+                { b[0].real().as_canonical_u32() }
+                qm31_sub
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 
     #[test]
@@ -366,27 +395,29 @@ mod test {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
         eprintln!("qm31 neg: {}", qm31_neg().len());
 
-        let a = rng.gen::<F>();
-        let c = a.neg();
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let c = a.neg();
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            qm31_neg
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_PUSHNUM_1
-        };
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                qm31_neg
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 
     #[test]
@@ -394,27 +425,29 @@ mod test {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
         eprintln!("qm31 square: {}", qm31_square().len());
 
-        let a = rng.gen::<F>();
-        let c = a.square();
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let c = a.square();
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            qm31_square
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_PUSHNUM_1
-        };
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                qm31_square
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 
     #[test]
@@ -422,33 +455,78 @@ mod test {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
         eprintln!("qm31 mul: {}", qm31_mul().len());
 
-        let a = rng.gen::<F>();
-        let b = rng.gen::<F>();
-        let c = a.mul(b);
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let b = rng.gen::<F>();
+            let c = a.mul(b);
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            { b[1].imag().as_canonical_u32() }
-            { b[1].real().as_canonical_u32() }
-            { b[0].imag().as_canonical_u32() }
-            { b[0].real().as_canonical_u32() }
-            qm31_mul
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_PUSHNUM_1
-        };
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { b[1].imag().as_canonical_u32() }
+                { b[1].real().as_canonical_u32() }
+                { b[0].imag().as_canonical_u32() }
+                { b[0].real().as_canonical_u32() }
+                qm31_mul
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+    }
+
+    #[test]
+    fn test_qm31_mul_by_constant() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+
+        let mut total_len = 0;
+
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let b = rng.gen::<F>();
+            let c = a.mul(b);
+
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let b: &[Complex<p3_mersenne_31::Mersenne31>] = b.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+
+            let mul_script = qm31_mul_by_constant(
+                b[1].imag().as_canonical_u32(),
+                b[1].real().as_canonical_u32(),
+                b[0].imag().as_canonical_u32(),
+                b[0].real().as_canonical_u32(),
+            );
+            total_len += mul_script.len();
+
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { mul_script.clone() }
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_PUSHNUM_1
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+
+        eprintln!("qm31 mul_by_constant: {}", total_len as f64 / 100.0);
     }
 
     #[test]
@@ -458,34 +536,36 @@ mod test {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
         eprintln!("qm31 mul_by_m31: {}", mul_script.len());
 
-        let a = rng.gen::<F>();
-        let b = rng.gen::<p3_mersenne_31::Mersenne31>();
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let b = rng.gen::<p3_mersenne_31::Mersenne31>();
 
-        let c = a * F::new(
-            Complex::<p3_mersenne_31::Mersenne31>::new(b, p3_mersenne_31::Mersenne31::zero()),
-            Complex::<p3_mersenne_31::Mersenne31>::zero(),
-        );
+            let c = a * F::new(
+                Complex::<p3_mersenne_31::Mersenne31>::new(b, p3_mersenne_31::Mersenne31::zero()),
+                Complex::<p3_mersenne_31::Mersenne31>::zero(),
+            );
 
-        let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
-        let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
+            let a: &[Complex<p3_mersenne_31::Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<p3_mersenne_31::Mersenne31>] = c.as_base_slice();
 
-        let script = script! {
-            { a[1].imag().as_canonical_u32() }
-            { a[1].real().as_canonical_u32() }
-            { a[0].imag().as_canonical_u32() }
-            { a[0].real().as_canonical_u32() }
-            { b.as_canonical_u32() }
-            { mul_script.clone() }
-            { c[1].imag().as_canonical_u32() }
-            { c[1].real().as_canonical_u32() }
-            { c[0].imag().as_canonical_u32() }
-            { c[0].real().as_canonical_u32() }
-            qm31_equalverify
-            OP_TRUE
-        };
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { b.as_canonical_u32() }
+                { mul_script.clone() }
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_TRUE
+            };
 
-        let exec_result = execute_script(script);
-        assert!(exec_result.success);
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
     }
 
     #[test]

@@ -16,6 +16,7 @@ For the degree-4 extension of M31 using y^2 - 2 - i over the complex field x^2 +
 - addition: 84 weight units
 - subtraction: 63 weight units
 - multiplication: 13321 weight units
+- multiplication by constant: ~7138 weight units
 - multiplication by M31: 4702 weight units
 - multiplication by M31 constant: ~2981 weight units
 

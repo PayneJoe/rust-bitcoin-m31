@@ -8,7 +8,7 @@ bitcoin-script = { git = "https://github.com/Bitcoin-Wildlife-Sanctuary/rust-bit
 bitcoin = "0.32.0"
 
 [dev-dependencies]
-bitcoin-scriptexec = { git = "https://github.com/Bitcoin-Wildlife-Sanctuary/rust-bitcoin-scriptexec/" }
+bitcoin-scriptexec = { git = "https://github.com/Bitcoin-Wildlife-Sanctuary/rust-bitcoin-scriptexec/", features = ["debug"] }
 rand_chacha = "0.3.1"
 rand = "0.8.5"
 p3-field = { git = "https://github.com/Plonky3/Plonky3" }
