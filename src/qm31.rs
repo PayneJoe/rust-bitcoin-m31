@@ -272,6 +272,15 @@ pub fn qm31_rot() -> Script {
     qm31_roll(2)
 }
 
+pub fn qm31_hint() -> Script {
+    script! {
+        OP_DEPTH OP_1SUB OP_ROLL
+        OP_DEPTH OP_1SUB OP_ROLL
+        OP_DEPTH OP_1SUB OP_ROLL
+        OP_DEPTH OP_1SUB OP_ROLL
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{
