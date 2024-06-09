@@ -5,6 +5,11 @@ pub use crate::karatsuba::*;
 
 use crate::m31::{m31_add, m31_double, m31_mul_common, m31_sub};
 
+/// Push a one QM31.
+///
+/// Output:
+/// - qm31 representing 0: 0, 0, 0, 0
+///
 pub fn push_qm31_zero() -> Script {
     script! {
         { 0 }
@@ -14,6 +19,11 @@ pub fn push_qm31_zero() -> Script {
     }
 }
 
+/// Push a zero QM31.
+///
+/// Output:
+/// - qm31 representing 1: 0, 0, 0, 1
+///
 pub fn push_qm31_one() -> Script {
     script! {
         { 0 }
@@ -23,6 +33,14 @@ pub fn push_qm31_one() -> Script {
     }
 }
 
+/// Pull a QM31 element from the bottom of the stack.
+///
+/// Hint:
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_from_bottom() -> Script {
     script! {
         m31_from_bottom
@@ -32,6 +50,15 @@ pub fn qm31_from_bottom() -> Script {
     }
 }
 
+/// Add two QM31 elements.
+///
+/// Input:
+/// - qm31
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_add() -> Script {
     script! {
         for i in 0..3 {
@@ -46,6 +73,29 @@ pub fn qm31_add() -> Script {
     }
 }
 
+/// Add an M31 element to a QM31 element.
+///
+/// Input:
+/// - qm31
+/// - m31
+///
+/// Output:
+/// - qm31
+///
+pub fn qm31_add_m31() -> Script {
+    script! {
+        m31_add
+    }
+}
+
+/// Require two QM31 elements to be equal.
+///
+/// Input:
+/// - qm31
+/// - qm31
+///
+/// Fail the execution if they are not equal.
+///
 pub fn qm31_equalverify() -> Script {
     script! {
         for i in 0..3 {
@@ -56,6 +106,15 @@ pub fn qm31_equalverify() -> Script {
     }
 }
 
+/// Subtract a QM31 element from the other.
+///
+/// Input:
+/// - qm31 representing A
+/// - qm31 representing B
+///
+/// Output:
+/// - qm31 representing A - B
+///
 pub fn qm31_sub() -> Script {
     script! {
         for i in 0..3 {
@@ -70,6 +129,14 @@ pub fn qm31_sub() -> Script {
     }
 }
 
+/// Negate a QM31 element.
+///
+/// Input:
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_neg() -> Script {
     script! {
         m31_neg OP_TOALTSTACK
@@ -80,6 +147,14 @@ pub fn qm31_neg() -> Script {
     }
 }
 
+/// Double a QM31 element.
+///
+/// Input:
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_double() -> Script {
     script! {
         for _ in 0..3 {
@@ -93,6 +168,14 @@ pub fn qm31_double() -> Script {
     }
 }
 
+/// Square a QM31 element.
+///
+/// Input:
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_square() -> Script {
     script! {
         { qm31_copy(0) }
@@ -100,6 +183,15 @@ pub fn qm31_square() -> Script {
     }
 }
 
+/// Multiply two QM31 elements.
+///
+/// Input:
+/// - qm31
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_mul() -> Script {
     script! {
         karatsuba_big
@@ -123,6 +215,14 @@ pub fn qm31_mul() -> Script {
     }
 }
 
+/// Multiply a QM31 element with a constant QM31 element.
+///
+/// Input:
+/// - qm31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_mul_by_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
     script! {
         { karatsuba_big_constant(a2, b2, c2, d2) }
@@ -146,15 +246,16 @@ pub fn qm31_mul_by_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
     }
 }
 
+/// Multiply a QM31 element by an M31 element.
+///
+/// Input:
+/// - qm31: d, c, b, a for (a + bi) + j(c + di)
+/// - m31
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_mul_m31() -> Script {
-    // input stack:
-    //
-    // qm31
-    // d, c, b, a
-    //
-    // m31
-    // e
-
     script! {
         m31_to_bits
 
@@ -202,12 +303,15 @@ pub fn qm31_mul_m31() -> Script {
     }
 }
 
+/// Multiply a QM31 element by a constant M31 element.
+///
+/// Input:
+/// - qm31: d, c, b, a for (a + bi) + j(c + di)
+///
+/// Output:
+/// - qm31
+///
 pub fn qm31_mul_m31_by_constant(constant: u32) -> Script {
-    // input stack:
-    //
-    // qm31
-    // d, c, b, a
-
     script! {
         OP_TOALTSTACK OP_TOALTSTACK OP_TOALTSTACK
         { m31_mul_by_constant(constant) }
@@ -220,6 +324,7 @@ pub fn qm31_mul_m31_by_constant(constant: u32) -> Script {
     }
 }
 
+/// Retrieve a QM31 element from the altstack.
 pub fn qm31_toaltstack() -> Script {
     script! {
         for _ in 0..4 {
@@ -228,6 +333,7 @@ pub fn qm31_toaltstack() -> Script {
     }
 }
 
+/// Send a QM31 element to the altstack.
 pub fn qm31_fromaltstack() -> Script {
     script! {
         for _ in 0..4 {
@@ -236,6 +342,7 @@ pub fn qm31_fromaltstack() -> Script {
     }
 }
 
+/// Copy a QM31 element from the stack.
 pub fn qm31_copy(offset: usize) -> Script {
     let a = offset * 4 + 4 - 1;
 
@@ -246,6 +353,7 @@ pub fn qm31_copy(offset: usize) -> Script {
     }
 }
 
+/// Roll a QM31 element in the stack.
 pub fn qm31_roll(offset: usize) -> Script {
     let a = offset * 4 + 4 - 1;
 
@@ -256,38 +364,47 @@ pub fn qm31_roll(offset: usize) -> Script {
     }
 }
 
+/// Duplicate the top QM31 element.
 pub fn qm31_dup() -> Script {
     qm31_copy(0)
 }
 
+/// Swap the top two QM31 elements.
 pub fn qm31_swap() -> Script {
     qm31_roll(1)
 }
 
+/// Copy the second-to-top QM31 element.
 pub fn qm31_over() -> Script {
     qm31_copy(1)
 }
 
+/// Rotate QM31 elements.
 pub fn qm31_rot() -> Script {
     qm31_roll(2)
 }
 
+/// Drop a QM31 element.
 pub fn qm31_drop() -> Script {
     script! {
         OP_2DROP OP_2DROP
     }
 }
 
-// Input:
-// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
-//
-// Output:
-// (-a + bi)j + (-c + di)
-// aka:
-// a' = b
-// b' = -a
-// c' = d
-// d' = -c
+/// Shift a QM31 element by i.
+///
+/// Input:
+/// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
+///
+/// Output:
+/// - (-a + bi)j + (-c + di)
+///
+/// aka:
+/// - a' = b
+/// - b' = -a
+/// - c' = d
+/// - d' = -c
+///
 pub fn qm31_shift_by_i() -> Script {
     script! {
         OP_SWAP
@@ -299,18 +416,22 @@ pub fn qm31_shift_by_i() -> Script {
     }
 }
 
-// Input:
-// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
-//
-// Output:
-//   (ai + b) j^2 + (ci + d)j
-// = (ai + b) (2 + i) + (ci + d) j
-// = (ci + d)j + ((2a + b)i + (2b - a))
-// aka:
-// a' = c
-// b' = d
-// c' = 2a + b
-// d' = 2b - a
+/// Shift a QM31 element by j.
+///
+/// Input:
+/// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
+///
+/// Output:
+/// - (ai + b) j^2 + (ci + d)j
+/// = (ai + b) (2 + i) + (ci + d) j
+/// = (ci + d)j + ((2a + b)i + (2b - a))
+///
+/// aka:
+/// - a' = c
+/// - b' = d
+/// - c' = 2a + b
+/// - d' = 2b - a
+///
 pub fn qm31_shift_by_j() -> Script {
     script! {
         OP_2SWAP
@@ -330,11 +451,14 @@ pub fn qm31_shift_by_j() -> Script {
     }
 }
 
-// Input:
-// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
-//
-// Output:
-//  (di - c)j + ((2b - a)i - (2a + b))
+/// Shift a QM31 element by ij.
+///
+/// Input:
+/// - a, b, c, d, which represents a qm31 element: (ai + b)j + (ci + d)
+///
+/// Output:
+/// - (di - c)j + ((2b - a)i - (2a + b))
+///
 pub fn qm31_shift_by_ij() -> Script {
     script! {
         qm31_shift_by_i

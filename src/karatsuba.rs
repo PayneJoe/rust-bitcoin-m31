@@ -1,10 +1,17 @@
 use crate::treepp::*;
 use crate::{m31_add, m31_mul, m31_mul_by_constant, m31_sub, MOD};
 
-// Input: A1 B1 A2 B2
-// Output:
-//      A1B2 + A2B1
-//      B1B2 - A1A2
+
+/// Algorithm for doing Karatsuba for 2 elements, where both elements are from the stack.
+///
+/// Input:
+/// - A1 B1
+/// - A2 B2
+///
+/// Output:
+/// - A1B2 + A2B1
+/// - B1B2 - A1A2
+///
 pub fn karatsuba_small() -> Script {
     script! {
         OP_OVER 4 OP_PICK
@@ -32,11 +39,16 @@ pub fn karatsuba_small() -> Script {
         OP_SWAP
     }
 }
-
-// Input: A1 B1
-// Output:
-//    A1B2 + A2B1
-//    B1B2 - A1A2
+/// Algorithm for doing Karatsuba for 2 elements, where the other element is a constant.
+///
+/// Input:
+/// - A1
+/// - B1
+///
+/// Output:
+/// - A1B2 + A2B1
+/// - B1B2 - A1A2
+///
 pub fn karatsuba_small_constant(a2: u32, b2: u32) -> Script {
     script! {
         // compute A1A2
@@ -72,13 +84,17 @@ pub fn karatsuba_small_constant(a2: u32, b2: u32) -> Script {
     }
 }
 
-// Input:
-//      A1 B1 C1 D1
-//      A2 B2 C2 D2
-// Output:
-//      (A1, B1) * (A2, B2) - 2 elements
-//      (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
-//      (C1, D1) * (C2, D2) - 2 elements
+/// Algorithm for doing Karatsuba for 4 elements, where both elements are given in the stack.
+///
+/// Input:
+/// - A1 B1 C1 D1
+/// - A2 B2 C2 D2
+///
+/// Output:
+/// - (A1, B1) * (A2, B2) - 2 elements
+/// - (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
+/// - (C1, D1) * (C2, D2) - 2 elements
+///
 pub fn karatsuba_big() -> Script {
     script! {
         7 OP_PICK
@@ -126,12 +142,16 @@ pub fn karatsuba_big() -> Script {
     }
 }
 
-// Input:
-//      A1 B1 C1 D1
-// Output:
-//      (A1, B1) * (A2, B2) - 2 elements
-//      (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
-//      (C1, D1) * (C2, D2) - 2 elements
+/// Algorithm for doing Karatsuba for 4 elements, where the other element is a constant.
+///
+/// Input:
+/// - A1 B1 C1 D1
+///
+/// Output:
+/// - (A1, B1) * (A2, B2) - 2 elements
+/// - (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
+/// - (C1, D1) * (C2, D2) - 2 elements
+///
 pub fn karatsuba_big_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
     script! {
         // compute (A1, B1) * (A2, B2), which would end up 2 elements

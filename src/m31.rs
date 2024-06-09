@@ -1,49 +1,99 @@
 use crate::treepp::*;
 
+/// Modulus of the M31 field.
 pub const MOD: u32 = (1 << 31) - 1;
 
+/// Push a zero M31 element.
+///
+/// Output: 0
+///
 pub fn push_m31_zero() -> Script {
     script! {
         0
     }
 }
 
+/// Push a one M31 element.
+///
+/// Output: 1
+///
 pub fn push_m31_one() -> Script {
     script! {
         1
     }
 }
 
+/// Push a zero twisted M31 element.
+///
+/// Output: 1 - 2^ 31
+///
 pub fn push_n31_zero() -> Script {
     script! {
         { -(MOD as i64) }
     }
 }
 
+/// Push a one twisted M31 element.
+///
+/// Output: 2 - 2^31
+///
 pub fn push_n31_one() -> Script {
     script! {
         { 1 - (MOD as i64) }
     }
 }
 
+/// Pull an M31 element from the bottom of the stack.
+///
+/// Hint:
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_from_bottom() -> Script {
     script! {
         OP_DEPTH OP_1SUB OP_ROLL
     }
 }
 
+/// Convert an M31 element into a twisted M31 element.
+///
+/// Input:
+/// - m31
+///
+/// Output:
+/// - n31
+///
 pub fn m31_to_n31() -> Script {
     script! {
         { MOD } OP_SUB
     }
 }
 
+/// Convert a twisted M31 element into an M31 element.
+///
+/// Input:
+/// - n31
+///
+/// Output:
+/// - m31
+///
 pub fn n31_to_m31() -> Script {
     script! {
         { MOD } OP_ADD
     }
 }
 
+/// Add a twisted M31 element to an M31 element.
+///
+/// Input:
+/// - m31 representing a
+/// - n31 representing b
+///
+/// Output:
+/// - m31 representing a + b
+///
 pub fn m31_add_n31() -> Script {
     script! {
         OP_ADD
@@ -51,6 +101,15 @@ pub fn m31_add_n31() -> Script {
     }
 }
 
+/// Add an M31 element to a twisted M31 element.
+///
+/// Input:
+/// - n31 representing a
+/// - m31 representing b
+///
+/// Output:
+/// - n31 representing a + b
+///
 pub fn n31_add_m31() -> Script {
     script! {
         OP_ADD
@@ -74,6 +133,15 @@ fn n31_adjust() -> Script {
     }
 }
 
+/// Add two M31 elements.
+///
+/// Input:
+/// - m31
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_add() -> Script {
     script! {
         m31_to_n31
@@ -81,6 +149,15 @@ pub fn m31_add() -> Script {
     }
 }
 
+/// Add two twisted M31 elements.
+///
+/// Input:
+/// - n31
+/// - n31
+///
+/// Output:
+/// - n31
+///
 pub fn n31_add() -> Script {
     script! {
         n31_to_m31
@@ -88,6 +165,14 @@ pub fn n31_add() -> Script {
     }
 }
 
+/// Double an M31 element.
+///
+/// Input:
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_double() -> Script {
     script! {
         OP_DUP
@@ -95,6 +180,14 @@ pub fn m31_double() -> Script {
     }
 }
 
+/// Double a twisted M31 element.
+///
+/// Input:
+/// - n31
+///
+/// Output:
+/// - n31
+///
 pub fn n31_double() -> Script {
     script! {
         OP_DUP
@@ -102,6 +195,15 @@ pub fn n31_double() -> Script {
     }
 }
 
+/// Subtract two M31 elements.
+///
+/// Input:
+/// - m31 representing a
+/// - m31 representing b
+///
+/// Output:
+/// - m31 representing a - b
+///
 pub fn m31_sub() -> Script {
     script! {
         OP_SUB
@@ -109,6 +211,15 @@ pub fn m31_sub() -> Script {
     }
 }
 
+/// Subtract two twisted M31 elements.
+///
+/// Input:
+/// - n31 representing a
+/// - n31 representing b
+///
+/// Output:
+/// - n31 representing a - b
+///
 pub fn n31_sub() -> Script {
     script! {
         OP_SUB
@@ -116,6 +227,14 @@ pub fn n31_sub() -> Script {
     }
 }
 
+/// Negate an M31 element.
+///
+/// Input:
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_neg() -> Script {
     script! {
         { MOD }
@@ -124,6 +243,14 @@ pub fn m31_neg() -> Script {
     }
 }
 
+/// Negate a twisted M31 element.
+///
+/// Input:
+/// - n31
+///
+/// Output:
+/// - n31
+///
 pub fn n31_neg() -> Script {
     script! {
         { -(MOD as i64) }
@@ -132,6 +259,11 @@ pub fn n31_neg() -> Script {
     }
 }
 
+/// Convert an M31 element into the bit representation, in an low-endian manner.
+///
+/// Output:
+/// - bits (higher bits first, then lower bits, which are closer to the top of the stack)
+///
 pub fn m31_to_bits() -> Script {
     script! {
         for i in 0..30 {
@@ -180,6 +312,15 @@ pub(crate) fn m31_mul_common() -> Script {
     }
 }
 
+/// Multiply two M31 elements.
+///
+/// Input:
+/// - m31
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_mul() -> Script {
     script! {
         m31_to_bits
@@ -190,6 +331,14 @@ pub fn m31_mul() -> Script {
     }
 }
 
+/// Square an M31 element.
+///
+/// Input:
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_square() -> Script {
     script! {
         OP_DUP
@@ -197,6 +346,14 @@ pub fn m31_square() -> Script {
     }
 }
 
+/// Multiply an M31 by a constant
+///
+/// Input:
+/// - m31
+///
+/// Output:
+/// - m31
+///
 pub fn m31_mul_by_constant(constant: u32) -> Script {
     let mut naf = find_naf(constant);
 
