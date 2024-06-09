@@ -5,7 +5,7 @@ use crate::{m31_add, m31_mul, m31_mul_by_constant, m31_sub, MOD};
 // Output:
 //      A1B2 + A2B1
 //      B1B2 - A1A2
-pub fn karatsuba_complex_small() -> Script {
+pub fn karatsuba_small() -> Script {
     script! {
         OP_OVER 4 OP_PICK
         m31_mul
@@ -37,7 +37,7 @@ pub fn karatsuba_complex_small() -> Script {
 // Output:
 //    A1B2 + A2B1
 //    B1B2 - A1A2
-pub fn karatsuba_complex_small_constant(a2: u32, b2: u32) -> Script {
+pub fn karatsuba_small_constant(a2: u32, b2: u32) -> Script {
     script! {
         // compute A1A2
         OP_OVER
@@ -79,19 +79,19 @@ pub fn karatsuba_complex_small_constant(a2: u32, b2: u32) -> Script {
 //      (A1, B1) * (A2, B2) - 2 elements
 //      (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
 //      (C1, D1) * (C2, D2) - 2 elements
-pub fn karatsuba_complex_big() -> Script {
+pub fn karatsuba_big() -> Script {
     script! {
         7 OP_PICK
         7 OP_PICK
         5 OP_PICK
         5 OP_PICK
-        karatsuba_complex_small
+        karatsuba_small
         OP_TOALTSTACK
         OP_TOALTSTACK
         OP_2DUP
         7 OP_PICK
         7 OP_PICK
-        karatsuba_complex_small
+        karatsuba_small
         OP_TOALTSTACK
         OP_TOALTSTACK
         OP_ROT
@@ -106,7 +106,7 @@ pub fn karatsuba_complex_big() -> Script {
         OP_FROMALTSTACK
         OP_FROMALTSTACK
         OP_FROMALTSTACK
-        karatsuba_complex_small
+        karatsuba_small
         OP_FROMALTSTACK
         OP_FROMALTSTACK
         OP_FROMALTSTACK
@@ -132,24 +132,24 @@ pub fn karatsuba_complex_big() -> Script {
 //      (A1, B1) * (A2, B2) - 2 elements
 //      (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
 //      (C1, D1) * (C2, D2) - 2 elements
-pub fn karatsuba_complex_big_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
+pub fn karatsuba_big_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
     script! {
         // compute (A1, B1) * (A2, B2), which would end up 2 elements
         3 OP_PICK
         3 OP_PICK
-        { karatsuba_complex_small_constant(a2, b2) }
+        { karatsuba_small_constant(a2, b2) }
         OP_TOALTSTACK OP_TOALTSTACK
 
         // compute (C1, D1) * (C2, D2), which would end up 2 elements
         OP_OVER OP_OVER
-        { karatsuba_complex_small_constant(c2, d2) }
+        { karatsuba_small_constant(c2, d2) }
         OP_TOALTSTACK OP_TOALTSTACK
 
         // compute (A1 + C1, B1 + D1)
         OP_ROT m31_add
         OP_TOALTSTACK m31_add OP_FROMALTSTACK
 
-        { karatsuba_complex_small_constant((a2 + c2) % MOD, (b2 + d2) % MOD) }
+        { karatsuba_small_constant((a2 + c2) % MOD, (b2 + d2) % MOD) }
 
         // stack: (A1 + C1, B1 + D1) * (A2 + C2, B2 + D2) (2 elements)
         // altstack: (A1, B1) * (A2, B2) (2 elements), (C1, D1) * (C2, D2) (2 elements)
@@ -175,8 +175,8 @@ pub fn karatsuba_complex_big_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Scr
 mod test {
     use crate::treepp::*;
     use crate::{
-        karatsuba_complex_big, karatsuba_complex_big_constant, karatsuba_complex_small,
-        karatsuba_complex_small_constant,
+        karatsuba_big, karatsuba_big_constant, karatsuba_small,
+        karatsuba_small_constant,
     };
     use core::ops::{Add, Mul, Sub};
     use p3_field::extension::Complex;
@@ -186,7 +186,7 @@ mod test {
     use rand_chacha::ChaCha20Rng;
 
     #[test]
-    fn test_small_karatsuba_complex() {
+    fn test_small_karatsuba() {
         let mut prng = ChaCha20Rng::seed_from_u64(0u64);
 
         for _ in 0..100 {
@@ -200,7 +200,7 @@ mod test {
 
             let script = script! {
                 { a1.as_canonical_u32() } { b1.as_canonical_u32() } { a2.as_canonical_u32() } { b2.as_canonical_u32() }
-                karatsuba_complex_small
+                karatsuba_small
                 { second.as_canonical_u32() }
                 OP_EQUALVERIFY
                 { first.as_canonical_u32() }
@@ -212,7 +212,7 @@ mod test {
     }
 
     #[test]
-    fn test_small_karatsuba_complex_constant() {
+    fn test_small_karatsuba_constant() {
         let mut prng = ChaCha20Rng::seed_from_u64(0u64);
 
         for _ in 0..100 {
@@ -226,7 +226,7 @@ mod test {
 
             let script = script! {
                 { a1.as_canonical_u32() } { b1.as_canonical_u32() }
-                { karatsuba_complex_small_constant(a2.as_canonical_u32(), b2.as_canonical_u32()) }
+                { karatsuba_small_constant(a2.as_canonical_u32(), b2.as_canonical_u32()) }
                 { second.as_canonical_u32() }
                 OP_EQUALVERIFY
                 { first.as_canonical_u32() }
@@ -238,7 +238,7 @@ mod test {
     }
 
     #[test]
-    fn test_big_karatsuba_complex() {
+    fn test_big_karatsuba() {
         let mut prng = ChaCha20Rng::seed_from_u64(0u64);
 
         for _ in 0..100 {
@@ -264,7 +264,7 @@ mod test {
             let script = script! {
                 { a1.as_canonical_u32() } { b1.as_canonical_u32() } { c1.as_canonical_u32() } { d1.as_canonical_u32() }
                 { a2.as_canonical_u32() } { b2.as_canonical_u32() } { c2.as_canonical_u32() } { d2.as_canonical_u32() }
-                karatsuba_complex_big
+                karatsuba_big
                 { group3_second.as_canonical_u32() }
                 OP_EQUALVERIFY
                 { group3_first.as_canonical_u32() }
@@ -284,7 +284,7 @@ mod test {
     }
 
     #[test]
-    fn test_big_karatsuba_complex_constant() {
+    fn test_big_karatsuba_constant() {
         let mut prng = ChaCha20Rng::seed_from_u64(0u64);
 
         for _ in 0..100 {
@@ -309,7 +309,7 @@ mod test {
 
             let script = script! {
                 { a1.as_canonical_u32() } { b1.as_canonical_u32() } { c1.as_canonical_u32() } { d1.as_canonical_u32() }
-                { karatsuba_complex_big_constant(a2.as_canonical_u32(), b2.as_canonical_u32(), c2.as_canonical_u32(), d2.as_canonical_u32()) }
+                { karatsuba_big_constant(a2.as_canonical_u32(), b2.as_canonical_u32(), c2.as_canonical_u32(), d2.as_canonical_u32()) }
                 { group3_second.as_canonical_u32() }
                 OP_EQUALVERIFY
                 { group3_first.as_canonical_u32() }
@@ -329,7 +329,7 @@ mod test {
     }
 
     #[test]
-    fn test_small_karatsuba_complex_consistency() {
+    fn test_small_karatsuba_consistency() {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
 
         for _ in 0..100 {
@@ -340,7 +340,7 @@ mod test {
             let script = script! {
                 { a.imag().as_canonical_u32() } { a.real().as_canonical_u32() }
                 { b.imag().as_canonical_u32() } { b.real().as_canonical_u32() }
-                karatsuba_complex_small
+                karatsuba_small
                 { c.real().as_canonical_u32() }
                 OP_EQUALVERIFY
                 { c.imag().as_canonical_u32() }

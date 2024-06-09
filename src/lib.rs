@@ -1,10 +1,13 @@
 mod m31;
 pub use m31::*;
 
+mod cm31;
+pub use cm31::*;
+
 mod qm31;
 pub use qm31::*;
 
-mod karatsuba_complex;
+mod karatsuba;
 
 pub(crate) mod treepp {
     pub use bitcoin_script::{define_pushable, script};

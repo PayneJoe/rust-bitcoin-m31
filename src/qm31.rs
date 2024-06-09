@@ -1,7 +1,7 @@
 use crate::treepp::*;
 use crate::{m31_from_bottom, m31_mul_by_constant, m31_neg, m31_to_bits};
 
-pub use crate::karatsuba_complex::*;
+pub use crate::karatsuba::*;
 
 use crate::m31::{m31_add, m31_double, m31_mul_common, m31_sub};
 
@@ -102,7 +102,7 @@ pub fn qm31_square() -> Script {
 
 pub fn qm31_mul() -> Script {
     script! {
-        karatsuba_complex_big
+        karatsuba_big
         4 OP_ROLL
         OP_DUP
         m31_double
@@ -125,7 +125,7 @@ pub fn qm31_mul() -> Script {
 
 pub fn qm31_mul_by_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
     script! {
-        { karatsuba_complex_big_constant(a2, b2, c2, d2) }
+        { karatsuba_big_constant(a2, b2, c2, d2) }
         4 OP_ROLL
         OP_DUP
         m31_double
