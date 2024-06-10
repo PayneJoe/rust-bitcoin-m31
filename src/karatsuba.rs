@@ -1,7 +1,6 @@
 use crate::treepp::*;
 use crate::{m31_add, m31_mul, m31_mul_by_constant, m31_sub, MOD};
 
-
 /// Algorithm for doing Karatsuba for 2 elements, where both elements are from the stack.
 ///
 /// Input:
@@ -194,10 +193,7 @@ pub fn karatsuba_big_constant(a2: u32, b2: u32, c2: u32, d2: u32) -> Script {
 #[cfg(test)]
 mod test {
     use crate::treepp::*;
-    use crate::{
-        karatsuba_big, karatsuba_big_constant, karatsuba_small,
-        karatsuba_small_constant,
-    };
+    use crate::{karatsuba_big, karatsuba_big_constant, karatsuba_small, karatsuba_small_constant};
     use core::ops::{Add, Mul, Sub};
     use p3_field::extension::Complex;
     use p3_field::PrimeField32;
