@@ -1,6 +1,7 @@
 use crate::treepp::*;
 use crate::{
-    karatsuba_small, karatsuba_small_constant, m31_add, m31_mul, m31_mul_by_constant, m31_sub,
+    karatsuba_small, karatsuba_small_constant, m31_add, m31_double, m31_mul, m31_mul_by_constant,
+    m31_sub,
 };
 
 /// Push a zero CM31 element.
@@ -38,6 +39,21 @@ pub fn cm31_add() -> Script {
     script! {
         OP_ROT m31_add
         OP_TOALTSTACK m31_add OP_FROMALTSTACK
+    }
+}
+
+/// Double two CM31 elements.
+///
+/// Input:
+/// - cm31
+///
+/// Output:
+/// - cm31
+///
+pub fn cm31_double() -> Script {
+    script! {
+        m31_double OP_TOALTSTACK
+        m31_double OP_FROMALTSTACK
     }
 }
 
@@ -189,11 +205,11 @@ pub fn cm31_fromaltstack() -> Script {
 mod test {
     use crate::treepp::*;
     use crate::{
-        cm31_add, cm31_equalverify, cm31_mul, cm31_mul_by_constant, cm31_mul_m31,
-        cm31_mul_m31_by_constant, cm31_sub, m31_add,
+        cm31_add, cm31_double, cm31_equalverify, cm31_mul, cm31_mul_by_constant, cm31_mul_m31,
+        cm31_mul_m31_by_constant, cm31_sub, m31_add, m31_double,
     };
     use p3_field::extension::Complex;
-    use p3_field::PrimeField32;
+    use p3_field::{AbstractField, PrimeField32};
     use p3_mersenne_31::Mersenne31;
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha20Rng;
@@ -218,6 +234,29 @@ mod test {
                 { b.imag().as_canonical_u32() }
                 { b.real().as_canonical_u32() }
                 cm31_add
+                { c.imag().as_canonical_u32() }
+                { c.real().as_canonical_u32() }
+                cm31_equalverify
+                OP_TRUE
+            };
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+    }
+
+    #[test]
+    fn test_cm31_double() {
+        let mut prng = ChaCha20Rng::seed_from_u64(0u64);
+        eprintln!("cm31 double: {}", m31_double().len());
+
+        for _ in 0..100 {
+            let a = prng.gen::<F>();
+            let c = a.double();
+
+            let script = script! {
+                { a.imag().as_canonical_u32() }
+                { a.real().as_canonical_u32() }
+                cm31_double
                 { c.imag().as_canonical_u32() }
                 { c.real().as_canonical_u32() }
                 cm31_equalverify
