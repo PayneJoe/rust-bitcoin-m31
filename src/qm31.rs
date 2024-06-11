@@ -1,5 +1,5 @@
 use crate::treepp::*;
-use crate::{m31_from_bottom, m31_mul_by_constant, m31_neg, m31_to_bits};
+use crate::{cm31_neg, m31_from_bottom, m31_mul_by_constant, m31_neg, m31_to_bits};
 
 pub use crate::karatsuba::*;
 
@@ -463,6 +463,21 @@ pub fn qm31_shift_by_ij() -> Script {
     script! {
         qm31_shift_by_i
         qm31_shift_by_j
+    }
+}
+
+/// Complex conjugation of a QM31 element.
+///
+/// Input:
+/// - qm31: d, c, b, a
+///
+/// Output:
+/// - qm31: -d, -c, b, a
+pub fn qm31_complex_conjugate() -> Script {
+    script! {
+        OP_2SWAP
+        cm31_neg
+        OP_2SWAP
     }
 }
 
@@ -993,5 +1008,35 @@ mod test {
             let exec_result = execute_script(script);
             assert!(exec_result.success);
         }
+    }
+
+    #[test]
+    fn test_qm31_complex_conjugate() {
+        let mut prng = ChaCha20Rng::seed_from_u64(0);
+
+        let complex_conjugate_script = qm31_complex_conjugate();
+        eprintln!("qm31 complex_conjugate: {}", complex_conjugate_script.len());
+
+        let a = prng.gen::<F>();
+        let c = a.conjugate();
+
+        let a: &[Complex<Mersenne31>] = a.as_base_slice();
+        let c: &[Complex<Mersenne31>] = c.as_base_slice();
+
+        let script = script! {
+            { a[1].imag().as_canonical_u32() }
+            { a[1].real().as_canonical_u32() }
+            { a[0].imag().as_canonical_u32() }
+            { a[0].real().as_canonical_u32() }
+            { complex_conjugate_script.clone() }
+            { c[1].imag().as_canonical_u32() }
+            { c[1].real().as_canonical_u32() }
+            { c[0].imag().as_canonical_u32() }
+            { c[0].real().as_canonical_u32() }
+            qm31_equalverify
+            OP_TRUE
+        };
+        let exec_result = execute_script(script);
+        assert!(exec_result.success);
     }
 }

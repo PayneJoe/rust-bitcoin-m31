@@ -1,7 +1,7 @@
 use crate::treepp::*;
 use crate::{
     karatsuba_small, karatsuba_small_constant, m31_add, m31_double, m31_mul, m31_mul_by_constant,
-    m31_sub,
+    m31_neg, m31_sub,
 };
 
 /// Push a zero CM31 element.
@@ -85,6 +85,22 @@ pub fn cm31_sub() -> Script {
     script! {
         OP_ROT OP_SWAP m31_sub
         OP_TOALTSTACK m31_sub OP_FROMALTSTACK
+    }
+}
+
+/// Negate a CM31 element.
+///
+/// Input:
+/// - cm31
+///
+/// Output:
+/// - cm31
+///
+pub fn cm31_neg() -> Script {
+    script! {
+        m31_neg
+        OP_SWAP m31_neg
+        OP_SWAP
     }
 }
 
