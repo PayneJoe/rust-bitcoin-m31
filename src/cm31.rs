@@ -217,12 +217,46 @@ pub fn cm31_fromaltstack() -> Script {
     }
 }
 
+/// Copy a CM31 element from the stack.
+pub fn cm31_copy(offset: usize) -> Script {
+    let a = offset * 2 + 2 - 1;
+
+    script! {
+        for _ in 0..2 {
+            { a } OP_PICK
+        }
+    }
+}
+
+/// Roll a CM31 element in the stack.
+pub fn cm31_roll(offset: usize) -> Script {
+    let a = offset * 2 + 2 - 1;
+
+    script! {
+        for _ in 0..2 {
+            { a } OP_ROLL
+        }
+    }
+}
+
+/// Copy the second-to-top CM31 element.
+pub fn cm31_over() -> Script {
+    script! {
+        OP_2OVER
+    }
+}
+
+/// Rotate QM31 elements.
+pub fn cm31_rot() -> Script {
+    cm31_roll(2)
+}
+
 #[cfg(test)]
 mod test {
     use crate::treepp::*;
     use crate::{
-        cm31_add, cm31_double, cm31_equalverify, cm31_mul, cm31_mul_by_constant, cm31_mul_m31,
-        cm31_mul_m31_by_constant, cm31_sub, m31_add, m31_double,
+        cm31_add, cm31_copy, cm31_double, cm31_equalverify, cm31_mul, cm31_mul_by_constant,
+        cm31_mul_m31, cm31_mul_m31_by_constant, cm31_roll, cm31_sub, m31_add, m31_double,
     };
     use p3_field::extension::Complex;
     use p3_field::{AbstractField, PrimeField32};
@@ -426,5 +460,64 @@ mod test {
         }
 
         eprintln!("cm31 mul_m31_by_constant: {}", total_len as f64 / 100.0);
+    }
+
+    #[test]
+    fn test_cm31_copy() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+
+        let a = rng.gen::<F>();
+        let b = rng.gen::<F>();
+
+        let copy_script = cm31_copy(1);
+
+        let script = script! {
+            { a.imag().as_canonical_u32() }
+            { a.real().as_canonical_u32() }
+            { b.imag().as_canonical_u32() }
+            { b.real().as_canonical_u32() }
+            { copy_script.clone() }
+            { a.imag().as_canonical_u32() }
+            { a.real().as_canonical_u32() }
+            cm31_equalverify
+            { b.imag().as_canonical_u32() }
+            { b.real().as_canonical_u32() }
+            cm31_equalverify
+            { a.imag().as_canonical_u32() }
+            { a.real().as_canonical_u32() }
+            cm31_equalverify
+            OP_TRUE
+        };
+
+        let exec_result = execute_script(script);
+        assert!(exec_result.success);
+    }
+
+    #[test]
+    fn test_cm31_roll() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+
+        let a = rng.gen::<F>();
+        let b = rng.gen::<F>();
+
+        let roll_script = cm31_roll(1);
+
+        let script = script! {
+            { a.imag().as_canonical_u32() }
+            { a.real().as_canonical_u32() }
+            { b.imag().as_canonical_u32() }
+            { b.real().as_canonical_u32() }
+            { roll_script.clone() }
+            { a.imag().as_canonical_u32() }
+            { a.real().as_canonical_u32() }
+            cm31_equalverify
+            { b.imag().as_canonical_u32() }
+            { b.real().as_canonical_u32() }
+            cm31_equalverify
+            OP_TRUE
+        };
+
+        let exec_result = execute_script(script);
+        assert!(exec_result.success);
     }
 }
