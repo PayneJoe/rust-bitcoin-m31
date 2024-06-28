@@ -1,7 +1,7 @@
 use crate::treepp::*;
 use crate::{
-    karatsuba_small, karatsuba_small_constant, m31_add, m31_double, m31_mul, m31_mul_by_constant,
-    m31_neg, m31_sub,
+    karatsuba_small, karatsuba_small_constant, m31_add, m31_double, m31_from_bottom, m31_mul,
+    m31_mul_by_constant, m31_neg, m31_sub,
 };
 
 /// Push a zero CM31 element.
@@ -246,9 +246,24 @@ pub fn cm31_over() -> Script {
     }
 }
 
-/// Rotate QM31 elements.
+/// Rotate CM31 elements.
 pub fn cm31_rot() -> Script {
     cm31_roll(2)
+}
+
+/// Pull a CM31 element from the bottom of the stack.
+///
+/// Hint:
+/// - cm31
+///
+/// Output:
+/// - cm31
+///
+pub fn cm31_from_bottom() -> Script {
+    script! {
+        m31_from_bottom
+        m31_from_bottom
+    }
 }
 
 #[cfg(test)]
