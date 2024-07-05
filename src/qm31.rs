@@ -1,5 +1,8 @@
 use crate::treepp::*;
-use crate::{cm31_neg, m31_from_bottom, m31_mul_by_constant, m31_neg, m31_to_bits};
+use crate::{
+    cm31_dup, cm31_fromaltstack, cm31_mul, cm31_neg, cm31_rot, cm31_toaltstack, m31_from_bottom,
+    m31_mul_by_constant, m31_neg, m31_to_bits,
+};
 
 pub use crate::karatsuba::*;
 
@@ -300,6 +303,22 @@ pub fn qm31_mul_m31() -> Script {
         // a
         3 OP_ROLL
         m31_mul_common
+    }
+}
+
+/// Multiply a QM31 element by an CM31 element
+///
+/// Input:
+/// - qm31: d, c, b, a for (a + bi) + j(c + di)
+/// - cm31: v, u
+///
+/// Output:
+/// - qm31
+pub fn qm31_mul_cm31() -> Script {
+    script! {
+        cm31_dup
+        cm31_rot cm31_mul cm31_toaltstack
+        cm31_mul cm31_fromaltstack
     }
 }
 
@@ -764,6 +783,43 @@ mod test {
                 { a[0].imag().as_canonical_u32() }
                 { a[0].real().as_canonical_u32() }
                 { b.as_canonical_u32() }
+                { mul_script.clone() }
+                { c[1].imag().as_canonical_u32() }
+                { c[1].real().as_canonical_u32() }
+                { c[0].imag().as_canonical_u32() }
+                { c[0].real().as_canonical_u32() }
+                qm31_equalverify
+                OP_TRUE
+            };
+
+            let exec_result = execute_script(script);
+            assert!(exec_result.success);
+        }
+    }
+
+    #[test]
+    fn test_qm31_mul_cm31() {
+        let mul_script = qm31_mul_cm31();
+
+        let mut rng = ChaCha20Rng::seed_from_u64(0u64);
+        eprintln!("qm31 mul_by_m31: {}", mul_script.len());
+
+        for _ in 0..100 {
+            let a = rng.gen::<F>();
+            let b = rng.gen::<Complex<Mersenne31>>();
+
+            let c = a * b;
+
+            let a: &[Complex<Mersenne31>] = a.as_base_slice();
+            let c: &[Complex<Mersenne31>] = c.as_base_slice();
+
+            let script = script! {
+                { a[1].imag().as_canonical_u32() }
+                { a[1].real().as_canonical_u32() }
+                { a[0].imag().as_canonical_u32() }
+                { a[0].real().as_canonical_u32() }
+                { b.imag().as_canonical_u32() }
+                { b.real().as_canonical_u32() }
                 { mul_script.clone() }
                 { c[1].imag().as_canonical_u32() }
                 { c[1].real().as_canonical_u32() }
