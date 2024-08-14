@@ -323,6 +323,7 @@ pub(crate) fn m31_mul_common() -> Script {
 ///
 pub fn m31_mul() -> Script {
     script! {
+        OP_NOP
         m31_to_bits
         for _ in 0..31 {
             OP_TOALTSTACK
