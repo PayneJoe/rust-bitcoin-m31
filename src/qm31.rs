@@ -197,6 +197,7 @@ pub fn qm31_square() -> Script {
 ///
 pub fn qm31_mul() -> Script {
     script! {
+        OP_NOP
         karatsuba_big
         4 OP_ROLL
         OP_DUP
