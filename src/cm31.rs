@@ -114,7 +114,10 @@ pub fn cm31_neg() -> Script {
 /// - cm31
 ///
 pub fn cm31_mul() -> Script {
-    karatsuba_small()
+    script! {
+        OP_NOP
+        karatsuba_small
+    }
 }
 
 /// Multiply a CM31 element with a constant CM31 element.
